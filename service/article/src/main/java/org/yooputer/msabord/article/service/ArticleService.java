@@ -8,6 +8,7 @@ import org.yooputer.msabord.article.entity.Article;
 import org.yooputer.msabord.article.repository.ArticleRepository;
 import org.yooputer.msabord.article.service.request.ArticleCreateRequest;
 import org.yooputer.msabord.article.service.request.ArticleUpdateRequest;
+import org.yooputer.msabord.article.service.response.ArticlePageResponse;
 import org.yooputer.msabord.article.service.response.ArticleResponse;
 import org.yooputer.msabord.common.snowflake.Snowflake;
 
@@ -43,4 +44,17 @@ public class ArticleService {
         Article article = articleRepository.findById(articleId).orElseThrow();
         articleRepository.delete(article);
     }
+
+    public ArticlePageResponse readAll(Long boardId, Long page, Long pageSize) {
+        return ArticlePageResponse.of(
+                articleRepository.findAll(boardId, (page - 1) * pageSize, pageSize).stream()
+                        .map(ArticleResponse::from)
+                        .toList(),
+                articleRepository.count(
+                        boardId,
+                        PageLimitCalculator.calculatePageLimit(page, pageSize, 10L)
+                )
+        );
+    }
+
 }
