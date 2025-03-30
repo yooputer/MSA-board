@@ -3,9 +3,12 @@ package org.yooputer.msabord.article.api;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.junit.jupiter.api.Test;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.web.client.RestClient;
 import org.yooputer.msabord.article.service.response.ArticlePageResponse;
 import org.yooputer.msabord.article.service.response.ArticleResponse;
+
+import java.util.List;
 
 
 public class ArticleApiTest {
@@ -74,53 +77,53 @@ public class ArticleApiTest {
         }
     }
 
-//    @Test
-//    void readAllInfiniteScrollTest() {
-//        List<ArticleResponse> articles1 = restClient.get()
-//                .uri("/v1/articles/infinite-scroll?boardId=1&pageSize=5")
-//                .retrieve()
-//                .body(new ParameterizedTypeReference<List<ArticleResponse>>() {
-//                });
-//
-//        System.out.println("firstPage");
-//        for (ArticleResponse articleResponse : articles1) {
-//            System.out.println("articleResponse.getArticleId() = " + articleResponse.getArticleId());
-//        }
-//
-//        Long lastArticleId = articles1.getLast().getArticleId();
-//        List<ArticleResponse> articles2 = restClient.get()
-//                .uri("/v1/articles/infinite-scroll?boardId=1&pageSize=5&lastArticleId=%s".formatted(lastArticleId))
-//                .retrieve()
-//                .body(new ParameterizedTypeReference<List<ArticleResponse>>() {
-//                });
-//
-//        System.out.println("secondPage");
-//        for (ArticleResponse articleResponse : articles2) {
-//            System.out.println("articleResponse.getArticleId() = " + articleResponse.getArticleId());
-//        }
-//    }
-//
-//    @Test
-//    void countTest() {
-//        ArticleResponse response = create(new ArticleCreateRequest("hi", "content", 1L, 2L));
-//
-//        Long count1 = restClient.get()
-//                .uri("/v1/articles/boards/{boardId}/count", 2L)
-//                .retrieve()
-//                .body(Long.class);
-//        System.out.println("count1 = " + count1); // 1
-//
-//        restClient.delete()
-//                .uri("/v1/articles/{articleId}", response.getArticleId())
-//                .retrieve();
-//
-//        Long count2 = restClient.get()
-//                .uri("/v1/articles/boards/{boardId}/count", 2L)
-//                .retrieve()
-//                .body(Long.class);
-//        System.out.println("count2 = " + count2); // 0
-//    }
-//
+    @Test
+    void readAllInfiniteScrollTest() {
+        List<ArticleResponse> articles1 = restClient.get()
+                .uri("/v1/articles/infinite-scroll?boardId=1&pageSize=5")
+                .retrieve()
+                .body(new ParameterizedTypeReference<List<ArticleResponse>>() {
+                });
+
+        System.out.println("firstPage");
+        for (ArticleResponse articleResponse : articles1) {
+            System.out.println("articleResponse.getArticleId() = " + articleResponse.getArticleId());
+        }
+
+        Long lastArticleId = articles1.get(articles1.size()-1).getArticleId();
+        List<ArticleResponse> articles2 = restClient.get()
+                .uri("/v1/articles/infinite-scroll?boardId=1&pageSize=5&lastArticleId=%s".formatted(lastArticleId))
+                .retrieve()
+                .body(new ParameterizedTypeReference<List<ArticleResponse>>() {
+                });
+
+        System.out.println("secondPage");
+        for (ArticleResponse articleResponse : articles2) {
+            System.out.println("articleResponse.getArticleId() = " + articleResponse.getArticleId());
+        }
+    }
+
+    @Test
+    void countTest() {
+        ArticleResponse response = create(new ArticleCreateRequest("hi", "content", 1L, 2L));
+
+        Long count1 = restClient.get()
+                .uri("/v1/articles/boards/{boardId}/count", 2L)
+                .retrieve()
+                .body(Long.class);
+        System.out.println("count1 = " + count1); // 1
+
+        restClient.delete()
+                .uri("/v1/articles/{articleId}", response.getArticleId())
+                .retrieve();
+
+        Long count2 = restClient.get()
+                .uri("/v1/articles/boards/{boardId}/count", 2L)
+                .retrieve()
+                .body(Long.class);
+        System.out.println("count2 = " + count2); // 0
+    }
+
 
     @Getter
     @AllArgsConstructor
