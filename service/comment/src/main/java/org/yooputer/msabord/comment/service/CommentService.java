@@ -11,6 +11,8 @@ import org.yooputer.msabord.comment.service.response.CommentPageResponse;
 import org.yooputer.msabord.comment.service.response.CommentResponse;
 import org.yooputer.msabord.common.snowflake.Snowflake;
 
+import java.util.List;
+
 import static java.util.function.Predicate.not;
 
 @Service
@@ -85,5 +87,14 @@ public class CommentService {
                         .toList(),
                 commentRepository.count(articleId, PageLimitCalculator.calculatePageLimit(page, pageSize, 10L))
         );
+    }
+
+    public List<CommentResponse> readAll(Long articleId, Long lastParentCommentId, Long lastCommentId, Long limit) {
+        List<Comment> comments = lastParentCommentId == null || lastCommentId == null ?
+                commentRepository.findAllInfiniteScroll(articleId, limit) :
+                commentRepository.findAllInfiniteScroll(articleId, lastParentCommentId, lastCommentId, limit);
+        return comments.stream()
+                .map(CommentResponse::from)
+                .toList();
     }
 }

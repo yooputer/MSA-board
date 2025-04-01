@@ -8,6 +8,8 @@ import org.yooputer.msabord.comment.service.request.CommentCreateRequest;
 import org.yooputer.msabord.comment.service.response.CommentPageResponse;
 import org.yooputer.msabord.comment.service.response.CommentResponse;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 public class CommentController {
@@ -40,4 +42,13 @@ public class CommentController {
         return commentService.readAll(articleId, page, pageSize);
     }
 
+    @GetMapping("/v1/comments/infinite-scroll")
+    public List<CommentResponse> readAll(
+            @RequestParam("articleId") Long articleId,
+            @RequestParam(value = "lastParentCommentId", required = false) Long lastParentCommentId,
+            @RequestParam(value = "lastCommentId", required = false) Long lastCommentId,
+            @RequestParam("pageSize") Long pageSize
+    ) {
+        return commentService.readAll(articleId, lastParentCommentId, lastCommentId, pageSize);
+    }
 }
