@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.yooputer.msabord.comment.service.CommentService;
 import org.yooputer.msabord.comment.service.request.CommentCreateRequest;
+import org.yooputer.msabord.comment.service.response.CommentPageResponse;
 import org.yooputer.msabord.comment.service.response.CommentResponse;
 
 @RestController
@@ -28,6 +29,15 @@ public class CommentController {
     @DeleteMapping("/v1/comments/{commentId}")
     public void delete(@PathVariable("commentId") Long commentId) {
         commentService.delete(commentId);
+    }
+
+    @GetMapping("/v1/comments")
+    public CommentPageResponse readAll(
+            @RequestParam("articleId") Long articleId,
+            @RequestParam("page") Long page,
+            @RequestParam("pageSize") Long pageSize
+    ) {
+        return commentService.readAll(articleId, page, pageSize);
     }
 
 }

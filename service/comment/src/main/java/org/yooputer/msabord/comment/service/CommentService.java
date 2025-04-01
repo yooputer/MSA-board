@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.yooputer.msabord.comment.entity.Comment;
 import org.yooputer.msabord.comment.repository.CommentRepository;
 import org.yooputer.msabord.comment.service.request.CommentCreateRequest;
+import org.yooputer.msabord.comment.service.response.CommentPageResponse;
 import org.yooputer.msabord.comment.service.response.CommentResponse;
 import org.yooputer.msabord.common.snowflake.Snowflake;
 
@@ -74,6 +75,15 @@ public class CommentService {
     public CommentResponse read(Long commentId) {
         return CommentResponse.from(
                 commentRepository.findById(commentId).orElseThrow()
+        );
+    }
+
+    public CommentPageResponse readAll(Long articleId, Long page, Long pageSize) {
+        return CommentPageResponse.of(
+                commentRepository.findAll(articleId, (page - 1) * pageSize, pageSize).stream()
+                        .map(CommentResponse::from)
+                        .toList(),
+                commentRepository.count(articleId, PageLimitCalculator.calculatePageLimit(page, pageSize, 10L))
         );
     }
 }
