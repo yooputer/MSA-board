@@ -5,7 +5,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.yooputer.msabord.article.entity.Article;
+import org.yooputer.msabord.article.entity.BoardArticleCount;
 import org.yooputer.msabord.article.repository.ArticleRepository;
+import org.yooputer.msabord.article.repository.BoardArticleCountRepository;
 import org.yooputer.msabord.article.service.request.ArticleCreateRequest;
 import org.yooputer.msabord.article.service.request.ArticleUpdateRequest;
 import org.yooputer.msabord.article.service.response.ArticlePageResponse;
@@ -19,12 +21,20 @@ import java.util.List;
 public class ArticleService {
     private final Snowflake snowflake = new Snowflake();
     private final ArticleRepository articleRepository;
+    private final BoardArticleCountRepository boardArticleCountRepository;
 
     @Transactional
     public ArticleResponse create(ArticleCreateRequest request) {
         Article article = articleRepository.save(
                 Article.create(snowflake.nextId(), request.getTitle(), request.getContent(), request.getBoardId(), request.getWriterId())
         );
+
+        int result = boardArticleCountRepository.increase(request.getBoardId());
+        if (result == 0) {
+            boardArticleCountRepository.save(
+                    BoardArticleCount.init(request.getBoardId(), 1L)
+            );
+        }
 
         return ArticleResponse.from(article);
     }
@@ -45,6 +55,7 @@ public class ArticleService {
     public void delete(Long articleId) {
         Article article = articleRepository.findById(articleId).orElseThrow();
         articleRepository.delete(article);
+        boardArticleCountRepository.decrease(article.getBoardId());
     }
 
     public ArticlePageResponse readAll(Long boardId, Long page, Long pageSize) {
@@ -66,4 +77,9 @@ public class ArticleService {
         return articles.stream().map(ArticleResponse::from).toList();
     }
 
+    public Long count(Long boardId) {
+        return boardArticleCountRepository.findById(boardId)
+                .map(BoardArticleCount::getArticleCount)
+                .orElse(0L);
+    }
 }
