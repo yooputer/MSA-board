@@ -36,4 +36,7 @@ use article;
 ./kafka-topics.sh --bootstrap-server localhost:9092 --create --topic msa-board-comment --replication-factor 1 --partitions 3
 ./kafka-topics.sh --bootstrap-server localhost:9092 --create --topic msa-board-like --replication-factor 1 --partitions 3
 ./kafka-topics.sh --bootstrap-server localhost:9092 --create --topic msa-board-view --replication-factor 1 --partitions 3
+
+# 토픽 조회
+./kafka-topics.sh --bootstrap-server localhost:9092 --list
 ```
