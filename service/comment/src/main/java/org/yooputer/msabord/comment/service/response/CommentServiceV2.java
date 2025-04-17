@@ -11,6 +11,10 @@ import org.yooputer.msabord.comment.repository.ArticleCommentCountRepository;
 import org.yooputer.msabord.comment.repository.CommentRepositoryV2;
 import org.yooputer.msabord.comment.service.PageLimitCalculator;
 import org.yooputer.msabord.comment.service.request.CommentCreateRequestV2;
+import org.yooputer.msabord.common.event.EventType;
+import org.yooputer.msabord.common.event.payload.CommentCreatedEventPayload;
+import org.yooputer.msabord.common.event.payload.CommentDeletedEventPayload;
+import org.yooputer.msabord.common.outboxmessagerelay.OutboxEventPublisher;
 import org.yooputer.msabord.common.snowflake.Snowflake;
 
 import java.util.List;
@@ -23,6 +27,7 @@ public class CommentServiceV2 {
     private final Snowflake snowflake = new Snowflake();
     private final CommentRepositoryV2 commentRepository;
     private final ArticleCommentCountRepository articleCommentCountRepository;
+    private final OutboxEventPublisher outboxEventPublisher;
 
     @Transactional
     public CommentResponse create(CommentCreateRequestV2 request) {
@@ -47,6 +52,20 @@ public class CommentServiceV2 {
                     ArticleCommentCount.init(request.getArticleId(), 1L)
             );
         }
+
+        outboxEventPublisher.publish(
+                EventType.COMMENT_CREATED,
+                CommentCreatedEventPayload.builder()
+                        .commentId(comment.getCommentId())
+                        .content(comment.getContent())
+                        .articleId(comment.getArticleId())
+                        .writerId(comment.getWriterId())
+                        .deleted(comment.getDeleted())
+                        .createdAt(comment.getCreatedAt())
+                        .articleCommentCount(count(comment.getArticleId()))
+                        .build(),
+                comment.getArticleId()
+        );
 
         return CommentResponse.from(comment);
     }
@@ -78,6 +97,20 @@ public class CommentServiceV2 {
                     } else {
                         delete(comment);
                     }
+
+                    outboxEventPublisher.publish(
+                            EventType.COMMENT_DELETED,
+                            CommentDeletedEventPayload.builder()
+                                    .commentId(comment.getCommentId())
+                                    .content(comment.getContent())
+                                    .articleId(comment.getArticleId())
+                                    .writerId(comment.getWriterId())
+                                    .deleted(comment.getDeleted())
+                                    .createdAt(comment.getCreatedAt())
+                                    .articleCommentCount(count(comment.getArticleId()))
+                                    .build(),
+                            comment.getArticleId()
+                    );
                 });
     }
 
